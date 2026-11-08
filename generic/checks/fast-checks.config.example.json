@@ -1,0 +1,20 @@
+{
+  "_note": "Copy to fast-checks.config.json in your repo root and edit. Each check runs only when a changed file matches 'when'.",
+  "checks": [
+    {
+      "name": "role config",
+      "when": "^roles/|^checks/",
+      "cmd": ["node", "checks/check-roles.mjs"],
+      "timeoutSec": 60,
+      "failIf": "problem"
+    },
+    {
+      "name": "type check",
+      "when": "\\.(ts|tsx)$",
+      "cmd": ["npm", "run", "typecheck", "--silent"],
+      "needs": "node_modules",
+      "timeoutSec": 150,
+      "failIf": "error"
+    }
+  ]
+}

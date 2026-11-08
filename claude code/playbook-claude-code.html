@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Risk-Tuned Delivery Playbook for Claude Code</title>
+<meta name="description" content="How High Impact Group runs Claude Code: protocols, agents and commands, by risk tier.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+body{margin:0}
+/* Layout: sticky toolbar over three tabbed reference sheets (protocols, agents, commands). Dense tables and cards, scanned not read. */
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --fg:#14181f; --muted:#5a6270; --line:#dde0e6; --ink:#1d2433;
+  --accent:#0d6e63; --accent-soft:#dff1ee;
+  --opus:#3b3f9e; --opus-soft:#e6e7f7; --sonnet:#0d6e63; --sonnet-soft:#dff1ee; --haiku:#9a5b00; --haiku-soft:#f8ecd6; --inherit:#5a6270; --inherit-soft:#e8eaee;
+  --warn:#a8321f; --warn-soft:#f8e3df;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1218; --panel:#171b23; --fg:#e8eaee; --muted:#9aa2b1; --line:#2a303c; --ink:#e8eaee;
+  --accent:#4fc4b4; --accent-soft:#12302d;
+  --opus:#a3a7ff; --opus-soft:#232656; --sonnet:#4fc4b4; --sonnet-soft:#12302d; --haiku:#f0b45c; --haiku-soft:#3a2a10; --inherit:#9aa2b1; --inherit-soft:#232833;
+  --warn:#ff9a86; --warn-soft:#3b1d17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1218; --panel:#171b23; --fg:#e8eaee; --muted:#9aa2b1; --line:#2a303c; --ink:#e8eaee;
+  --accent:#4fc4b4; --accent-soft:#12302d;
+  --opus:#a3a7ff; --opus-soft:#232656; --sonnet:#4fc4b4; --sonnet-soft:#12302d; --haiku:#f0b45c; --haiku-soft:#3a2a10; --inherit:#9aa2b1; --inherit-soft:#232833;
+  --warn:#ff9a86; --warn-soft:#3b1d17; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.55;padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:none;margin:0}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-block:12px 10px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.brandrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;margin-bottom:10px}
+h1{font-size:19px;font-weight:600;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px}
+.controls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.tabs,.seg{display:flex;gap:2px;background:var(--inherit-soft);padding:3px;border-radius:7px}
+.tabs button,.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:5px;cursor:pointer}
+.tabs button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--panel);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=search]{font:inherit;font-size:14px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px 11px;min-width:0;flex:1 1 200px;max-width:340px}
+.count{font-size:12px;color:var(--muted);font-family:var(--font-mono)}
+main{padding-top:22px}
+section.sheet[hidden]{display:none}
+h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:34px 0 12px}
+h2:first-child{margin-top:0}
+h3{font-size:16px;margin:0 0 4px;font-weight:600}
+p{margin:0 0 10px}
+code,.mono{font-family:var(--font-mono);font-size:.9em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px}
+.tier{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tier .n{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.tier .t{font-weight:600}
+.tier ul{margin:0;padding-left:18px;color:var(--fg);font-size:14px}
+.tier .gates{margin-top:auto;font-family:var(--font-mono);font-size:12px;color:var(--accent)}
+.tier.t3{border-color:var(--warn)}
+.tier.t3 .gates{color:var(--warn)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:8px}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.step b{font-family:var(--font-mono);font-size:13px;color:var(--accent)}
+.step .who{font-family:var(--font-mono);font-size:12px;margin-top:4px;overflow-wrap:anywhere}
+.step p{font-size:13px;color:var(--muted);margin:6px 0 0}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:11px;padding:1px 7px;border-radius:4px;white-space:nowrap}
+.b-opus{background:var(--opus-soft);color:var(--opus)}.b-sonnet{background:var(--sonnet-soft);color:var(--sonnet)}.b-haiku{background:var(--haiku-soft);color:var(--haiku)}.b-inherit{background:var(--inherit-soft);color:var(--inherit)}
+.b-repo{border:1px solid var(--line);color:var(--muted)}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.rules li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.rules strong{font-weight:600}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.item .head{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.item .name{font-family:var(--font-mono);font-weight:500;font-size:14px;overflow-wrap:anywhere}
+.item .desc{font-size:13.5px;color:var(--muted);margin:0}
+.item .copy{margin-left:auto;font:inherit;font-size:11px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:4px;padding:1px 7px;cursor:pointer}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin-bottom:6px}
+a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.tabs button,.seg button{transition:background .12s}}
+footer.credit{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+footer.credit a{color:var(--accent)}
+section[id]{scroll-margin-top:calc(var(--hh,110px) + 12px)}
+nav.jump{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+nav.jump a{color:var(--muted);text-decoration:none;padding:2px 0;border-bottom:1px solid transparent}
+nav.jump a:hover{color:var(--fg);border-bottom-color:var(--accent)}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--font-mono);font-size:12.5px;line-height:1.5;margin:0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px}
+.lede{font-size:16px;color:var(--fg)}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+
+.sheet>nav.jump{margin-bottom:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brandrow"><h1>Risk-Tuned Delivery Playbook for Claude Code</h1><span class="sub">How High Impact Group runs Claude Code: protocols, agents and commands, by risk tier.</span></div>
+  <div class="controls">
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-protocols" data-tab="protocols" aria-selected="true">Protocols</button>
+      <button role="tab" id="tab-agents" data-tab="agents" aria-selected="false">Agents</button>
+      <button role="tab" id="tab-commands" data-tab="commands" aria-selected="false">Commands</button>
+    </div>
+    
+    <input type="search" id="q" placeholder="Search by name or purpose" aria-label="Search" hidden>
+    <span class="count" id="count"></span>
+  </div>
+</header>
+
+<main>
+<section class="sheet" id="sheet-protocols">
+<nav class="jump" aria-label="Sections"><a href="#idea">The idea</a><a href="#tiers">Tiers</a><a href="#gates">Gates and roles</a><a href="#models">Models</a><a href="#guardrails">Guardrails</a><a href="#roles">Session roles</a><a href="#kit">Starter kit</a><a href="#rules">Working rules</a></nav>
+<section id="idea">
+  <h2>The idea</h2>
+  <p class="lede">For us, a design, an adversarial review, a build, an independent code review and a deploy gate catch real defects. They also cost hours and a lot of tokens. For a typo or a cold-path tweak that cost buys very little.</p>
+  <p class="note">This is how we work at High Impact Group. We share it as it is, not as a standard or a recommendation. Take what is useful and change the rest to fit your own stakes.</p>
+  <p><strong>Pick the process by risk.</strong> Size is a poor guide. Start every change at the lowest tier that fits. Go up only when a named trigger applies. Keep the full process for the few kinds of change where a mistake is expensive or hard to undo.</p>
+</section>
+
+<section id="tiers">
+  <h2>Four tiers</h2>
+  <div class="tiers">
+    <div class="tier"><span class="n">TIER 0</span><span class="t">CI only</span><ul><li>Docs, tests, copy</li><li>Tooling and agent config</li></ul><span class="gates">No design. No review.</span></div>
+    <div class="tier"><span class="n">TIER 1 &middot; the default for code</span><span class="t">Light</span><ul><li>Cold path, small, easy to revert</li><li>Covered by a test that can fail</li></ul><span class="gates">A few lines of design in the PR. No independent reviewer unless the owner asks.</span></div>
+    <div class="tier"><span class="n">TIER 2</span><span class="t">Standard</span><ul><li>Shared helpers, generators</li><li>Prompt wording, scheduled jobs, anything that sends to a customer</li></ul><span class="gates">Short design in the PR. One reviewer reads design and diff together.</span></div>
+    <div class="tier t3"><span class="n">TIER 3</span><span class="t">Full process</span><ul><li>Migrations, money, auth, privacy</li><li>Your product's core loop</li></ul><span class="gates">Design file. Two or more design reviewers. The reviewer runs every mutation.</span></div>
+  </div>
+  <h2>How to assign a tier</h2>
+  <ul class="rules">
+    <li><strong>Start low.</strong> Tier 1 is the default for code. Tier 0 for docs, tests and config.</li>
+    <li><strong>Escalate on a named trigger only.</strong> Keep a short table of triggers in your repo. "It feels risky" is not a trigger. If you cannot name the row, stay put.</li>
+    <li><strong>Never go back down</strong> after a trigger fires. Whoever finds the trigger raises the tier and says so.</li>
+    <li><strong>Write the tier in the PR</strong> on one line. A CI check can fail PRs that have no tier line.</li>
+    <li><strong>The owner can override</strong> with one word: "tier 1".</li>
+  </ul>
+  <p class="note">Our trigger table is built for our own stakes, and yours will differ. Our Tier 3 rows: schema migrations, deleting or rewriting stored user data, billing, auth and access control, privacy-sensitive data, and the one code path your product depends on. Our Tier 2 rows: shared helpers, generated customer-facing documents, prompt changes, and scheduled jobs.</p>
+</section>
+
+<section id="gates">
+  <h2>The five gates (Tier 3)</h2>
+  <div class="flow">
+    <div class="step"><b>G1 Design</b><div class="who">designer</div><p>A design file: evidence, at least two options, files to change, tests, rollback, acceptance checks.</p></div>
+    <div class="step"><b>G2 Design review</b><div class="who">design reviewer</div><p>Told to find reasons the design is wrong. Not the author. Every must-fix is answered.</p></div>
+    <div class="step"><b>G3 Build</b><div class="who">builder</div><p>Tests first, shown failing. Builds exactly the approved design. Opens a draft PR.</p></div>
+    <div class="step"><b>G4 Code review</b><div class="who">code reviewer</div><p>Wrote neither design nor code. Reads the full diff, drives the real path, runs the mutations.</p></div>
+    <div class="step"><b>G5 Deploy</b><div class="who">a person</div><p>Only after G4. Migrations, env vars and flag flips are done by a human.</p></div>
+  </div>
+  <h2>Role agents</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Agent</th><th>Job</th><th>Can write?</th></tr></thead>
+    <tbody>
+      <tr><td><code>designer</code></td><td>Writes the design file and opens a docs-only draft PR.</td><td>Docs only</td></tr>
+      <tr><td><code>design-reviewer</code></td><td>Adversarial review of the design. Posts a verdict.</td><td>No</td></tr>
+      <tr><td><code>builder</code></td><td>Implements the approved design, tests first.</td><td>Yes</td></tr>
+      <tr><td><code>code-reviewer</code></td><td>Independent review of the diff against the design.</td><td>No</td></tr>
+      <tr><td><code>migration-reviewer</code></td><td>Reviews any schema change or database function. Returns ship or hold.</td><td>No</td></tr>
+      <tr><td><code>fix-round-builder</code></td><td>One consolidated fix round after review.</td><td>Yes</td></tr>
+      <tr><td><code>retester</code></td><td>Checks the shipped fix on fresh data, read-only database access.</td><td>No</td></tr>
+    </tbody></table></div>
+  <p class="note">The agent list shows these roles as <code>designer-g1</code>, <code>reviewer-g2</code>, <code>builder-g3</code>, <code>reviewer-g4</code>, <code>reviewer-migration</code>, <code>builder-fix-round</code> and <code>tester-retest</code>. Reviewers must not have written the thing they review. Say who you chose and why. If every independent reviewer is busy, wait or record an exception on the PR.</p>
+</section>
+
+<section id="models">
+  <h2>Pin models and effort in the files</h2>
+  <p>We do not leave model choice to inheritance. We put the model and effort in each agent's frontmatter, and a script checks that they match one config file.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Work</th><th>Suggested pin</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Design and every review</td><td>Your strongest model, high effort</td><td>These steps find the mistakes. A weak reviewer approves bad work.</td></tr>
+      <tr><td>Build and tests</td><td>A capable mid-tier model, high effort</td><td>The design already settled the approach.</td></tr>
+      <tr><td>Triage and routing</td><td>Your smallest model</td><td>Cheap sorting of noise into act, watch and ignore.</td></tr>
+    </tbody></table></div>
+<pre style="margin-top:10px">---
+name: code-reviewer
+description: Independent review of a diff against its approved design.
+model: claude-opus-5-5
+effort: xhigh
+tools: Read, Grep, Glob, Bash
+---</pre>
+  <p class="note">Check the current model IDs and which frontmatter keys your Claude Code version supports before copying. Reviewers can be made read-only with a <code>tools</code> allowlist or a <code>disallowedTools</code> list.</p>
+  <h2>A drift guard</h2>
+  <p>Keep one JSON file that lists the allowed models and the pin for each gate agent and command. A small script reads every agent and command file and fails CI when a file disagrees, a model is not on the list, or a reviewer gained a write tool. This has been the cheapest way for us to keep a large agent set consistent.</p>
+</section>
+
+<section id="guardrails">
+  <h2>Guardrails in hooks, not in prompts</h2>
+  <p>A prompt can be ignored, so we put the rules we cannot afford to break into <code>PreToolUse</code> hooks and permission deny lists.</p>
+  <div class="two">
+    <div class="card"><h3>What we always block, and always check</h3><ul style="margin:6px 0 0;padding-left:18px;font-size:14px"><li>Plain force pushes (allow <code>--force-with-lease</code>)</li><li>Ending a turn while the fast checks fail (a Stop hook that runs them and sends the work back)</li><li><code>rm -rf</code> on protected paths</li><li>Piping a download into a shell</li><li>Edits to secrets, lock files and keys (exempt <code>*.example</code>)</li><li>Closing keywords in commits and PRs, if you hand bugs to a tester</li><li>A hook that crashes: make it stop the command, not let it through</li></ul></div>
+    <div class="card"><h3>Where we want a person to decide</h3><ul style="margin:6px 0 0;padding-left:18px;font-size:14px"><li>Merging and marking a PR ready (the owner, or a deployment-manager session the owner directs)</li><li>Opening a non-draft PR</li><li>Pushing to the main branch</li><li>Applying production migrations and changing production env values</li></ul></div>
+  </div>
+  <p class="note">Parse commands properly. A substring match blocks harmless commands and misses wrapped ones (<code>bash -c</code>, subshells, global flags such as <code>git -C . push</code>). Test the hook with sample payloads, then confirm once in a live session that it fires: hooks load only for sessions started inside the repo.</p>
+</section>
+
+<section id="roles">
+  <h2>Three long-running sessions</h2>
+  <p>Besides the agents above, we keep three persistent sessions, each with one fixed job and its own brief. A person starts each one, states the authority once, and stays on the decisions that are theirs.</p>
+  <div class="two">
+    <div class="card"><h3>Delivery controller</h3>
+      <p style="margin:4px 0 8px;font-size:14px">Runs a delivery program. It writes little code itself. It assigns each change a risk tier, briefs the design, review, build and test agents, and checks each result against the code, the database and the logs before it believes it.</p>
+      <ul style="margin:0;padding-left:18px;font-size:14px"><li>Passes the model and effort to every agent, every time.</li><li>Never lets the author of a design or a change review it.</li><li>Keeps a handover document so a new session can resume from the repo alone.</li><li>Leaves to the owner: migrations, production flags, anything paid or irreversible, and closing bug reports.</li></ul></div>
+    <div class="card"><h3>Deployment manager</h3>
+      <p style="margin:4px 0 8px;font-size:14px">Takes a list of pull requests and an order, and walks each one to merged: brings the branch up to date, resolves conflicts, runs the tests, fixes what only breaks because two changes now meet, turns on auto-merge, and waits for the checks.</p>
+      <ul style="margin:0;padding-left:18px;font-size:14px"><li>Merges one at a time, and prepares the next while the current one waits.</li><li>Holds a change whose description names an unmet precondition, and says what would close it.</li><li>Never weakens a test, rewrites history or force-pushes.</li><li>Reports what it changed beyond the change, what it did not check, and what only a person can do.</li></ul></div>
+    <div class="card"><h3>Smoke tester</h3>
+      <p style="margin:4px 0 8px;font-size:14px">Uses the live product through a browser the way a customer would. It finds problems, proves them with evidence and files them as issues. It does not fix them.</p>
+      <ul style="margin:0;padding-left:18px;font-size:14px"><li>Waits until a deploy is live before testing, and uses fresh test data each round.</li><li>Closes an issue only after it has seen the fix work on production.</li><li>Probes AI features with injection, disguised injection, pressure to invent figures, off-topic requests, regulated advice and requests to name real people. It always sends a normal follow-up afterward.</li><li>Leaves logins, sends and deletions to the person, and says what it did not test.</li></ul></div>
+  </div>
+  <p class="note">The common rule is that these sessions report faithfully: a failure is stated with its evidence, a skipped step is stated as skipped, and a check is never claimed that did not run.</p>
+</section>
+
+<section id="kit">
+  <h2>A starter kit</h2>
+  <p>We started with a handful of each and added more when we found ourselves repeating a task.</p>
+  <div class="two">
+    <div class="card"><h3>Agents</h3>
+      <table><tbody>
+        <tr><td><b>Gate roles</b></td><td>designer, design reviewer, builder, code reviewer, migration reviewer, fix-round builder, retester</td></tr>
+        <tr><td><b>Specialist reviewers</b></td><td>security, database, privacy, accessibility, API design, silent-failure hunter</td></tr>
+        <tr><td><b>Operators</b></td><td>incident responder, ops health, triage scout, release planner</td></tr>
+        <tr><td><b>Lenses</b></td><td>product, growth, pricing, competitor, investor, plus a few buyer and user personas</td></tr>
+      </tbody></table></div>
+    <div class="card"><h3>Commands</h3>
+      <table><tbody>
+        <tr><td><b>Deliver</b></td><td>idea, plan, solve, hotfix, gate, pre-merge, post-merge, an issue-to-PR loop</td></tr>
+        <tr><td><b>Audit</b></td><td>security, privacy, accessibility, performance, SEO, UX, launch readiness</td></tr>
+        <tr><td><b>Set up</b></td><td>health check, error tracking, rate limiting, request timeouts</td></tr>
+        <tr><td><b>Daily</b></td><td>session start and end, morning brief, branch cleanup</td></tr>
+      </tbody></table></div>
+  </div>
+  <p class="note">We keep each repo's agents to that repo. Persona agents written for one product mislead in another.</p>
+</section>
+
+<section id="rules">
+  <h2>Working rules</h2>
+  <ul class="rules">
+    <li><strong>PRs open as drafts.</strong> The owner, or an agent they direct, marks them ready and merges after review and green CI.</li>
+    <li><strong>Refer to issues with <code>refs #N</code>,</strong> never a closing keyword. Let the tester close after retest.</li>
+    <li><strong>One fix round per review.</strong> Fix critical and high findings and clear bugs. Put nits in a follow-up note. A reviewer with nothing blocking says "ship" and stops.</li>
+    <li><strong>Tests first,</strong> shown failing on the base. State a rollback. Give source, time window and sample size for every telemetry claim.</li>
+    <li><strong>A builder that cannot build the design as written stops and reports.</strong> The fix is a design amendment, not a quiet deviation.</li>
+    <li><strong>Retest on fresh data.</strong> A defect on rows written before a fix is not proof the fix failed.</li>
+    <li><strong>Scale mutation checks with the tier:</strong> none at Tier 1, the important ones at Tier 2, all at Tier 3.</li>
+  </ul>
+</section>
+</section>
+
+<section class="sheet" id="sheet-agents" hidden>
+  <div class="legend"><span><span class="badge b-opus">opus</span> design and review</span><span><span class="badge b-sonnet">sonnet</span> build and lenses</span><span><span class="badge b-haiku">haiku</span> triage</span><span><span class="badge b-inherit">inherits</span> no pin</span></div>
+  <div id="agents-out"></div>
+</section>
+
+<section class="sheet" id="sheet-commands" hidden>
+  <p style="color:var(--muted);font-size:13.5px">Type the name with a leading slash, for example <code>/gate</code>. Use the copy button to grab it.</p>
+  <div id="commands-out"></div>
+</section>
+</main>
+<footer class="credit">Developed by High Impact Group Pty Ltd, p. 1800 029 262, <a href="https://www.highimpactgroup.com.au" target="_blank" rel="noopener">www.highimpactgroup.com.au</a></footer>
+</div>
+
+<script>
+var DATA = {"a": {"agents": [{"n": "accessibility-auditor", "d": "Audits a web product against WCAG 2.2 AA: keyboard access, focus, color contrast, semantic structure, forms, ARIA and screen-reader experience. Produces a prioritized report with the exact fix for each issue. Use for accessibility reviews, before enterprise or public-sector sales, or when a VPAT or WCAG conformance claim is needed.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "api-design-reviewer", "d": "Reviews the design of your product's APIs, including the endpoints you expose to partners and integrations, for consistency, correctness, versioning, error handling, pagination, auth and documentation. Use before shipping or changing a public or partner-facing API, or when planning an API product.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "architect", "d": "Turns an idea, backlog item or bug into a written design that the implementer can build exactly as specified. Use before implementation when no design file exists: scoping, options, chosen approach, files to change, tests, risks and acceptance criteria. Does not write application code.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "builder-fix-round", "d": "One consolidated fix round on a PR after review. Use with the same builder that wrote the PR.", "m": "claude-sonnet-5-5", "e": "xhigh"}, {"n": "builder-g3", "d": "Builds exactly the approved design, tests first, and opens a draft PR. Use when an approved design exists. Stops and reports if the design cannot be built as written.", "m": "claude-sonnet-5-5", "e": "xhigh"}, {"n": "code-reviewer", "d": "Senior developer who reviews changes for quality, patterns and potential issues", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "competitive-analyst", "d": "Analyzes competitors and positions the product against alternatives using codebase evidence", "m": "claude-sonnet-5-5", "e": ""}, {"n": "compliance-reviewer", "d": "Reviews the product against legal and regulatory requirements: privacy, accessibility, consumer law, AI disclosure", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "copy-editor", "d": "Reviews all user-facing text for US English, clarity, tone, brand consistency, persona fit and SEO keyword usage", "m": "claude-sonnet-5-5", "e": ""}, {"n": "customer-experience-guru", "d": "Thinks about the entire user journey from discovery to daily usage: onboarding, friction, retention, support burden", "m": "claude-sonnet-5-5", "e": ""}, {"n": "data-analyst", "d": "Answers product and business questions from your database (signups, activation, retention, usage, revenue) by writing safe read-only SQL and explaining what the numbers mean. Use for metrics questions like \"how many signups yesterday\", cohort and funnel analysis, or a quick pull from the database.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "data-prospector", "d": "Finds untapped data sources (open, closed, public, commercial, structured, unstructured) that create outsized value when added to the platform. The oil explorer of data.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "database-architect", "d": "Designs and reviews database schemas, migrations, indexes, queries and row-level security policies for Postgres", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "dependency-auditor", "d": "Sweeps the dependencies across the repos for known vulnerabilities (CVEs), risky or incompatible licenses, and stale or abandoned packages, then gives a prioritized, safe upgrade plan. Use for supply-chain reviews, before an enterprise security questionnaire, or on a regular dependency-hygiene cadence. Feeds security-reviewer.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "design-auditor", "d": "Audits the codebase for design system consistency across typography, spacing, headings, kickers, alignment, color, components, and templates. Produces a structured report and a remediation plan. Use proactively when the user asks about design consistency, style drift, or wants a UI audit.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "designer-g1", "d": "Writes the design file before any code, for Tier 2 and Tier 3 work. Use when a change needs a design and none exists. Opens a docs-only draft PR.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "devops-specialist", "d": "Thinks about deployment, reliability, monitoring, cron jobs, and infrastructure health", "m": "claude-sonnet-5-5", "e": ""}, {"n": "e2e-test-writer", "d": "Writes and maintains Playwright end-to-end regression tests for the critical user journeys (signup, checkout, onboarding, core product flows). Use after a feature ships or a bug is fixed, to lock the behavior in. Distinct from qa-tester, which hunts for new bugs by hand.", "m": "claude-sonnet-5-5", "e": "xhigh"}, {"n": "eval-engineer", "d": "Builds and runs LLM evaluations for your AI features, turns real LLM traces into eval datasets, writes assertions, and runs prompt-regression tests before a prompt or model change ships. Use before changing any system prompt, persona definition, model, or RAG pipeline, and when setting up offline evals.", "m": "claude-opus-5-5", "e": "high"}, {"n": "finops-optimiser", "d": "Finds where the AI and infrastructure spend is going and how to cut it without hurting quality, reads LLM cost and latency traces, spots token-heavy prompts and products, and recommends model routing (a stronger model to a cheaper or faster one), caching, and prompt trimming. Use for cost reviews, when a bill jumps, or before scaling a feature.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "growth-strategist", "d": "Identifies growth levers, conversion opportunities, and user acquisition strategies from the actual product", "m": "claude-sonnet-5-5", "e": ""}, {"n": "implementer", "d": "Builds code from an approved design document, exactly as specified. Use when a design or spec file already exists and the task is to turn it into working code or any \"implement what's in design.md\" job. Do NOT use for exploratory work, for deciding what to build, or when no written design exists yet.", "m": "claude-sonnet-5-5", "e": "xhigh"}, {"n": "incident-responder", "d": "Reactive triage for a live production problem, reads error-tracker events, deploy and runtime logs, and database advisors and logs to find root cause fast, then proposes the smallest safe fix or rollback. Use when something is broken in production right now. The reactive counterpart to ops-health.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "investor-lens", "d": "Evaluates the product from an investor's perspective, moat, scalability, unit economics, risk, and growth potential", "m": "claude-sonnet-5-5", "e": ""}, {"n": "marketing-content", "d": "Creates compelling marketing content grounded in what the product actually does, landing pages, emails, social posts, case studies", "m": "claude-sonnet-5-5", "e": ""}, {"n": "onboarding-specialist", "d": "Obsessed with the first-time user experience. Removes friction between signup and first value", "m": "claude-sonnet-5-5", "e": ""}, {"n": "ops-health", "d": "Operational thinking partner that investigates the health of a running product, including cron jobs, data feeds, logs, external dependencies, and trends", "m": "claude-opus-5-5", "e": ""}, {"n": "pdf-designer", "d": "Creates beautiful, professionally formatted PDF documents that look as good as (or better than) the screen. Obsessive about typography, spacing, alignment, color, and visual hierarchy in generated PDFs.", "m": "claude-opus-5-5", "e": ""}, {"n": "performance-optimiser", "d": "Obsessed with speed. Finds and fixes slow pages, heavy bundles, inefficient queries, and sluggish AI calls", "m": "claude-sonnet-5-5", "e": ""}, {"n": "pricing-analyst", "d": "Analyzes product pricing from every angle, including current tiers, competitor benchmarks, willingness-to-pay signals, packaging, and conversion economics", "m": "claude-opus-5-5", "e": ""}, {"n": "privacy-reviewer", "d": "Reviews personal data handling in depth, covering what is collected, where it flows, how long it is kept, how it is deleted and who can access it. Focused on the privacy law that applies, cross-border disclosure, retention and deletion, and AI data flows. Narrower and deeper than compliance-reviewer. Use before launching a feature that touches personal data, when changing hosting or providers, or before answering a customer security questionnaire.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "product-strategist", "d": "Thinks about features from a user value and market perspective, not a technical one", "m": "claude-sonnet-5-5", "e": ""}, {"n": "prompt-engineer", "d": "Optimizes system prompts, persona definitions, and tool descriptions across the product's AI features", "m": "claude-opus-5-5", "e": ""}, {"n": "qa-tester", "d": "Adversarial tester that tries to break features and find edge cases", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "rag-engineer", "d": "Audits and improves retrieval quality for products that use embeddings and RAG, including chunking, embeddings, vector search, the hybrid vector and keyword upgrade, and reranking. Use when answers cite the wrong context, when search recall is poor, or when planning the hybrid-search upgrade.", "m": "claude-opus-5-5", "e": "high"}, {"n": "refactorer", "d": "Cleans up code without changing behavior. Reduces complexity, extracts patterns, removes duplication", "m": "claude-sonnet-5-5", "e": ""}, {"n": "release-manager", "d": "Turns merged pull requests and commits into clean release notes and a customer-facing changelog, and shepherds the release. Groups changes by theme, writes them in plain language, and separates internal from user-visible. Use when cutting a release, writing a changelog, or summarizing what shipped across a repo or the portfolio.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "release-planner", "d": "Works out the safe order to merge a set of open PRs, and what has to happen around them. Use when several PRs are ready at once and you need merge order, migration sequencing, environment variable changes, and rebase requirements before anything lands, or any \"I have five PRs ready, what order?\" question. Do NOT use for reviewing PR quality or for merging anything.", "m": "claude-sonnet-5-5", "e": "medium"}, {"n": "reviewer-g2", "d": "Adversarial review of a design by someone who did not write it. Use after the design, on Tier 2 and Tier 3 work. Finds reasons the design is wrong and posts a verdict.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "reviewer-g4", "d": "Independent review of a diff against its approved design, by someone who wrote neither. Drives a real run, runs the builder's mutations and posts a verdict on the PR.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "reviewer-migration", "d": "Reviews any schema change or database function in a PR. Read-only. Returns SHIP or HOLD.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "security-pen-tester", "d": "Adversarial security reviewer that prepares a product for enterprise security review and third-party penetration testing: audits RLS/multi-tenancy, auth, secrets, injection, webhook verification, and writes the concrete fix for every confirmed finding", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "security-reviewer", "d": "Reviews a change or a system through a security lens. Read-only. Reports reachable problems with the smallest safe fix.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "seo-specialist", "d": "Optimizes the product for search visibility across both traditional search and AI answer engines: technical SEO, on-page GEO (generative engine optimization), content strategy, keyword and question targeting, schema, and link-worthy / citation-worthy assets", "m": "claude-opus-5-5", "e": ""}, {"n": "silent-failure-hunter", "d": "Obsessively hunts for code paths where things fail without anyone knowing: swallowed errors, missing alerts, fire-and-forget calls, unchecked returns, and invisible degradation", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "technical-writer", "d": "Creates and maintains clear, accurate documentation: README, API docs, architecture guides, onboarding docs", "m": "claude-sonnet-5-5", "e": ""}, {"n": "tester-retest", "d": "Retests a shipped fix on fresh data. Read-only database access. Reports per case against the design's expectations.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "triage-scout", "d": "Fast, cheap first-pass triage. Sorts and summarizes incoming noise (error-tracker issues, log excerpts, cron output, GitHub issues, feed health) into act-now, watch and ignore, with a one-line reason each. Use for routine sweeps. Hands anything serious to incident-responder or ops-health. Read-only.", "m": "claude-haiku-5-5", "e": ""}, {"n": "visionary", "d": "Reads the codebase and thinks big: commercialization, growth, expansion, disruptive moves, stickiness. Unrestrained but feasible. The strategist who sees what you're too close to see.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "visual-designer", "d": "Reviews the site with a designer's eye: consistency, spacing, typography, color, visual hierarchy, polish, and craft", "m": "claude-opus-5-5", "e": ""}], "commands": [{"n": "access-review", "d": "Comprehensive access-control review: maps who can access what, finds authz gaps, bypass paths and privilege-escalation risks, and verifies least privilege across the auth flow.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "accessibility-audit", "d": "Audits the codebase against WCAG 2.2 AA: semantic HTML, keyboard access, contrast, forms, ARIA and screen-reader support, and reports issues with fixes.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "add-health-check", "d": "Adds a health-check endpoint that verifies database, auth and core services are operational.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "add-llm-tracing", "d": "Adds LLM observability so every AI call is tracked for latency, tokens, cost and success/failure.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "add-max-duration", "d": "Adds maxDuration exports to every API route to prevent serverless function hangs.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "add-error-tracking", "d": "Adds error tracking to the project following the standard setup sequence.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "add-rate-limiting", "d": "Replaces the in-memory rate limiter with a shared store so limits persist across cold starts and instances.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "ai-audit", "d": "Deep audit of every AI implementation: system prompts, model selection, tools, RAG, error handling, cost and UX, flagging gaps, risks and inconsistencies.", "m": "claude-opus-5-5", "e": ""}, {"n": "ai-story", "d": "Reads the codebase and produces a compelling, honest, non-technical narrative of how the product uses AI, for users, buyers and investors.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "api-docs", "d": "Generates developer-facing API reference documentation from every API route.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "architect", "d": "Turns an idea, issue or bug into a written design (options, chosen approach, files, tests, risks) before any code is written.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "audit-claude-md", "d": "Audits the project's CLAUDE.md against the actual codebase for stale, missing or inaccurate claims. Report only.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "autopilot-audit", "d": "One-time readiness audit for supervised autopilot: finds lifecycle gaps, drafts what it can, and raises GitHub issues for anything needing approval.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "autopilot-run", "d": "Runs the weekly supervised autopilot sweep: executes approved automations, drafts what needs approval, notifies, and raises issues for decisions.", "m": "claude-opus-5-5", "e": "high"}, {"n": "backlog-sweep", "d": "Work the assigned GitHub issue backlog into a set of review-ready PRs plus a release plan. Clusters issues by root cause, designs and builds one fix per cluster, gates each PR, and stops before merge.", "m": "claude-opus-5-5", "e": "high"}, {"n": "changelog", "d": "Generates clear, non-technical release notes from recent git history for product, investor and user updates.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "client-security-brief", "d": "Produces a client-facing security and data-practices document, with every claim verified against the actual code.", "m": "claude-opus-5-5", "e": ""}, {"n": "code-review", "d": "Thorough review of the current staged and unstaged changes against quality, correctness and security criteria.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "config-audit", "d": "Audits configuration across hosting, database, payments, OAuth, DNS and the app code for mismatches, missing settings and broken connections.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "cost-audit", "d": "Analyzes infrastructure and AI spend, model choices, token limits, call frequency, and finds the biggest cost drivers and savings.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "data-audit", "d": "Comprehensive data-quality audit, currency, completeness, accuracy and integrity, using sampling, cross-referencing and anomaly detection.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "database-review", "d": "Audits the database schema, migrations, indexes, RLS policies and data health for correctness and consistency.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "decision-audit", "d": "Surfaces the judgment calls made during recent work, not the code, so you review the choices before anything merges.", "m": "claude-opus-5-5", "e": ""}, {"n": "dependency-audit", "d": "Audits npm dependencies for vulnerabilities, outdated and unused packages, and safe upgrade paths.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "design-develop", "d": "Develop a design from problem to build-ready spec. Frames the problem, generates genuinely distinct directions, gates on your choice, then develops the chosen direction through every state.", "m": "claude-opus-5-5", "e": ""}, {"n": "design-review", "d": "Independent multi-agent design review. Captures the rendered UI, runs a blind panel of specialist agents, and synthesizes convergent findings into a severity-ranked report.", "m": "claude-opus-5-5", "e": ""}, {"n": "env-audit", "d": "Audits environment variables for mismatches between what the code expects, what's documented and what's set.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "feature-summary", "d": "Produces a clear, non-technical feature summary for stakeholders and clients.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "gate", "d": "Full quality gate over the current changes: baseline, review, test, triaged fix, regression check", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "hotfix", "d": "Incident path for a broken production: contain, find the cause, ship the smallest fix, verify, and write the follow-ups.", "m": "claude-opus-5-5", "e": "high"}, {"n": "ia-audit", "d": "Audit site + codebase for information-architecture and link-hygiene problems: orphaned pages, broken/duplicate links, missing marketing & footer surfaces, marketing pages gated behind auth, and feature reachability. Read-only; report-only.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "idea", "d": "Guided, beginner-friendly session that draws out an idea and shapes it into a clear, well-scoped GitHub issue.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "ideate", "d": "Proactively scans the codebase and context and surfaces improvements worth making that you didn't ask for.", "m": "claude-opus-5-5", "e": ""}, {"n": "issue-fix-loop", "d": "Autonomous issue-resolution routine, discovers open issues, clusters by root cause, then designs, builds, ships, smoke-tests and closes each up to a cap.", "m": "claude-opus-5-5", "e": "high"}, {"n": "marketing-brief", "d": "Extracts an accurate, up-to-date marketing brief from the codebase: real capabilities, pricing and positioning, for copy and collateral.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "migration-check", "d": "Reviews pending SQL migrations for safety: locks, destructive changes, RLS, backfills, rollback and ordering. Report only.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "mobile-review", "d": "Audits every page and component for mobile usability across 320 to 768px: responsiveness, tap targets, overflow and layout.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "model-audit", "d": "Scans code, config, agents and commands for pinned, deprecated or mismatched Claude model IDs and tiers. Report only.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "morning", "d": "The daily startup brief: what happened overnight, what's broken, what you planned, and what to focus on.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "ops-health", "d": "Full operational health check across deployment, data, crons, logs and dependencies: the daily standup for a running product.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "performance-review", "d": "Reviews the codebase for performance bottlenecks, rendering, bundles, queries and AI calls, with fixes.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "persona-panel", "d": "Runs an artifact (pitch, page, feature, copy) past the relevant buyer/user personas and synthesizes where they agree and split.", "m": "claude-opus-5-5", "e": "high"}, {"n": "plan", "d": "Write a plan before any code", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "portfolio-status", "d": "Reads context across all projects and gives a synthesised cross-portfolio view.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "post-merge", "d": "Verifies a merged PR actually did what it claimed in production: deploy healthy, migrations applied, errors not up, behavior confirmed.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "pre-launch-review", "d": "Single-pass launch-readiness audit combining the security, SEO, performance, access, privacy and resilience blockers.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "pre-merge", "d": "Pre-merge gate: surfaces migrations and env vars before merge, then verifies they landed after.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "privacy-review", "d": "Maps personal-data flows and checks handling against applicable privacy law, flagging compliance gaps.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "prune-branches", "d": "Deletes local git branches whose remote counterpart is gone and prunes stale worktree entries. Confirms scope before deleting anything.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "rca", "d": "Targeted root cause analysis of a known failure. Reproduces the symptom, generates competing hypotheses, falsifies rather than confirms, and traces past the proximate cause to why the system permitted it.", "m": "claude-opus-5-5", "e": ""}, {"n": "recap", "d": "Concise recap of a finished problem-solving arc, issue, root cause, fix, why it's right, what's next", "m": "claude-sonnet-5-5", "e": ""}, {"n": "resilience-review", "d": "Assesses how the app handles failure, degrades gracefully and recovers, error handling, boundaries, silent failures and timeouts.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "security-review", "d": "Comprehensive security review of the whole codebase, authn/authz, secrets, injection, access control and more.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "seo-audit", "d": "Technical SEO audit, meta and head tags, structured data, sitemaps, canonicals and semantic structure, with a prioritized report.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "session-end", "d": "Leave the next session a clean start", "m": "claude-sonnet-5-5", "e": ""}, {"n": "session-start", "d": "Orient this session before any work", "m": "claude-haiku-5-5", "e": ""}, {"n": "telemetry-sweep", "d": "Sweep error, trace, database and deploy telemetry for bug signals, correlate across sources, and produce ranked root-cause analysis with recommendations.", "m": "claude-opus-5-5", "e": ""}, {"n": "smoke-test", "d": "Adversarially exercise a live product with a throwaway account, cross-reference what the UI claims against committed state and telemetry, and fix confirmed divergences via draft PR and preview retest.", "m": "claude-opus-5-5", "e": "high"}, {"n": "solve", "d": "Guided, beginner-friendly session that takes a noticed problem through to a review-ready pull request.", "m": "claude-opus-5-5", "e": ""}, {"n": "structure-review", "d": "Reviews file and folder structure for organization, consistency and convention, flagging clutter and misplacement.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "sync", "d": "Gets the current branch safely in sync with its remote, confirming before anything destructive.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "technical-spec", "d": "Generates a developer-facing technical specification: architecture, data models, integrations and implementation.", "m": "claude-opus-5-5", "e": "xhigh"}, {"n": "test", "d": "Interactive test harness: describe what to test, run it via Playwright with throwaway accounts, get a report with issue-ready summaries.", "m": "claude-opus-5-5", "e": "high"}, {"n": "test-gen", "d": "Writes Playwright end-to-end regression tests for a shipped feature or fixed bug, then runs them to prove they pass.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "triage", "d": "Reads open issues, scores them by impact, and produces a ranked shortlist.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "triage-and-ship", "d": "Triages open issues by impact and ships the single highest-impact one end to end.", "m": "claude-opus-5-5", "e": ""}, {"n": "triage-fix-ship", "d": "Triage (or take a given set of) issues, confirm true root cause with live telemetry, design + adversarially review each fix, build, gate, merge, and close or hand off for retest.", "m": "claude-opus-5-5", "e": "high"}, {"n": "ux-review", "d": "Senior UI/UX review of every page, flow and interaction: usability, visual design, information architecture and polish.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "voice-learn", "d": "Compares a draft you edited against the original, extracts what changed and why, and saves the lessons for future drafts.", "m": "claude-sonnet-5-5", "e": ""}, {"n": "decide", "d": "Interview me for the decisions this work needs, with a recommendation, reasons and trade-offs for each, in plain English", "m": "claude-opus-5-5", "e": "high"}, {"n": "decision-brief", "d": "Put the decisions I need to make in one document I can approve and comment on, with a recommendation and reasons for each", "m": "claude-opus-5-5", "e": "high"}]}, "b": {"agents": [], "commands": []}};
+var AGENT_GROUPS = [
+ ["Gate roles", "The G1 to G5 pipeline, in order.", ["designer-g1","reviewer-g2","builder-g3","reviewer-g4","reviewer-migration","builder-fix-round","tester-retest"]],
+ ["Design and review", "Read-only specialists. Use for second opinions and audits.", ["architect","code-reviewer","qa-tester","security-reviewer","security-pen-tester","database-architect","silent-failure-hunter","api-design-reviewer","privacy-reviewer","compliance-reviewer","accessibility-auditor","design-auditor","dependency-auditor"]],
+ ["Build", "Write code, tests and documents.", ["implementer","e2e-test-writer","refactorer","performance-optimiser","prompt-engineer","technical-writer","pdf-designer"]],
+ ["Operate", "Run, watch and ship the product.", ["incident-responder","ops-health","triage-scout","devops-specialist","release-manager","release-planner","finops-optimiser","data-analyst","eval-engineer","rag-engineer"]],
+ ["Strategy and market lenses", "Opinionated views from the codebase and the web.", ["competitive-analyst","customer-experience-guru","growth-strategist","investor-lens","product-strategist","visionary","onboarding-specialist","data-prospector","pricing-analyst","moat-analyst-agent","seo-specialist","marketing-content","copy-editor","visual-designer"]]
+];
+var COMMAND_GROUPS = [
+ ["Deliver", "Take work from idea to shipped.", ["decide","decision-brief","idea","solve","plan","architect","technical-spec","gate","code-review","pre-merge","post-merge","migration-check","issue-fix-loop","triage-and-ship","triage-fix-ship","backlog-sweep","hotfix","triage","rca","decision-audit"]],
+ ["Review and audit", "One lens over the whole product.", ["access-review","accessibility-audit","ai-audit","cost-audit","data-audit","database-review","dependency-audit","design-review","env-audit","ia-audit","mobile-review","model-audit","performance-review","pre-launch-review","privacy-review","resilience-review","security-review","seo-audit","structure-review","ux-review","config-audit","audit-claude-md","autopilot-audit","data-trace"]],
+ ["Set up", "Add a standard piece of infrastructure.", ["add-health-check","add-llm-tracing","add-max-duration","add-error-tracking","add-rate-limiting"]],
+ ["Daily and ops", "Start the day, watch production, tidy up.", ["morning","session-start","session-end","ops-health","telemetry-sweep","portfolio-status","recap","sync","prune-branches","autopilot-run","smoke-test","test","test-gen"]],
+ ["Write and explain", "Produce documents, summaries and ideas.", ["ai-story","api-docs","changelog","client-security-brief","feature-summary","marketing-brief","voice-learn","persona-panel","design-develop","ideate"]]
+];
+
+function merge(kind){
+  var map = {}, order = [];
+  ["a","b"].forEach(function(repo){
+    DATA[repo][kind].forEach(function(it){
+      if(!map[it.n]){ map[it.n] = {n:it.n, d:it.d, m:it.m, e:it.e, repos:[]}; order.push(it.n); }
+      if(map[it.n].repos.indexOf(repo) < 0) map[it.n].repos.push(repo);
+      if(!map[it.n].d && it.d) map[it.n].d = it.d;
+    });
+  });
+  return {map:map, order:order};
+}
+var AG = merge("agents"), CM = merge("commands");
+
+var state = {tab:"protocols", repo:"all", q:""};
+function plain(s){ return String(s).replace(/\s+[\u2014\u2013]\s+/g, ", ").replace(/[\u2014\u2013]/g, "-"); }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function modelBadge(m){
+  if(!m) return '<span class="badge b-inherit">inherits</span>';
+  var k = m.indexOf("opus")>=0 ? "opus" : m.indexOf("sonnet")>=0 ? "sonnet" : m.indexOf("haiku")>=0 ? "haiku" : "inherit";
+  return '<span class="badge b-'+k+'">'+esc(k)+'</span>';
+}
+function repoBadges(repos){ return ""; }
+function itemHtml(it, slash){
+  var eff = it.e ? ' <span class="badge b-inherit">'+esc(it.e)+'</span>' : '';
+  var nm = (slash ? "/" : "") + it.n;
+  return '<div class="item"><div class="head"><span class="name">'+esc(nm)+'</span>'+modelBadge(it.m)+eff+repoBadges(it.repos)+
+    '<button class="copy" type="button" data-copy="'+esc(nm)+'" aria-label="Copy '+esc(nm)+'">copy</button></div>'+
+    '<p class="desc">'+esc(plain(it.d || "No description in the file."))+'</p></div>';
+}
+function matches(it){
+  if(state.repo !== "all" && it.repos.indexOf(state.repo) < 0) return false;
+  if(!state.q) return true;
+  var hay = (it.n+" "+(it.d||"")).toLowerCase();
+  return state.q.toLowerCase().split(/\s+/).every(function(w){ return hay.indexOf(w) >= 0; });
+}
+function render(kind, groups, out, slash){
+  var src = kind === "agents" ? AG : CM;
+  var used = {}, html = "", total = 0;
+  groups.forEach(function(g){
+    var names = g[2];
+    if(!names){
+      names = src.order.filter(function(n){ return /persona$/.test(n); });
+    }
+    var items = names.filter(function(n){ return src.map[n]; }).map(function(n){ used[n]=1; return src.map[n]; }).filter(matches);
+    if(!items.length) return;
+    total += items.length;
+    html += '<h2>'+esc(g[0])+' <span class="count">'+items.length+'</span></h2><p style="color:var(--muted);font-size:13px;margin-top:-4px">'+esc(g[1])+'</p><div class="grid">'+items.map(function(i){ return itemHtml(i, slash); }).join("")+'</div>';
+  });
+  var rest = src.order.filter(function(n){ return !used[n] && matches(src.map[n]); });
+  if(rest.length){ total += rest.length; html += '<h2>Other <span class="count">'+rest.length+'</span></h2><div class="grid">'+rest.map(function(n){ return itemHtml(src.map[n], slash); }).join("")+'</div>'; }
+  if(!total) html = '<div class="empty">Nothing matches. Clear the search or switch the repo filter.</div>';
+  document.getElementById(out).innerHTML = html;
+  return total;
+}
+function update(){
+  ["protocols","agents","commands"].forEach(function(t){
+    document.getElementById("sheet-"+t).hidden = (t !== state.tab);
+    var b = document.getElementById("tab-"+t); b.setAttribute("aria-selected", t === state.tab ? "true" : "false");
+  });
+  var listing = state.tab !== "protocols";
+  document.getElementById("q").hidden = !listing;
+  var c = document.getElementById("count"); c.textContent = "";
+  if(state.tab === "agents") c.textContent = render("agents", AGENT_GROUPS, "agents-out", false) + " agents";
+  if(state.tab === "commands") c.textContent = render("commands", COMMAND_GROUPS, "commands-out", true) + " commands";
+}
+function setTab(t, fromHash){
+  state.tab = t; update();
+  try{ window.scrollTo(0,0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }catch(e){}
+  if(!fromHash){ try{ history.replaceState(null,"","#"+t); }catch(e){ location.hash = t; } }
+}
+document.querySelector(".tabs").addEventListener("click", function(e){ var t = e.target.getAttribute("data-tab"); if(t) setTab(t); });
+document.getElementById("q").addEventListener("input", function(e){ state.q = e.target.value.trim(); update(); });
+document.addEventListener("click", function(e){
+  var t = e.target.getAttribute && e.target.getAttribute("data-copy");
+  if(!t) return;
+  var btn = e.target;
+  function done(ok){ btn.textContent = ok ? "copied" : "select"; setTimeout(function(){ btn.textContent = "copy"; }, 1200); }
+  try{ navigator.clipboard.writeText(t).then(function(){ done(true); }, function(){ done(false); }); }catch(err){ done(false); }
+});
+window.addEventListener("hashchange", function(){ var h = location.hash.slice(1); if(["protocols","agents","commands"].indexOf(h) >= 0) setTab(h, true); });
+(function(){ var h = location.hash.slice(1); if(["protocols","agents","commands"].indexOf(h) >= 0) state.tab = h; update(); })();
+(function(){
+  var h = document.querySelector("header.top");
+  function size(){ if(h) document.documentElement.style.setProperty("--hh", h.offsetHeight + "px"); }
+  size(); window.addEventListener("resize", size);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(size);
+})();
+</script>
+</body>
+</html>

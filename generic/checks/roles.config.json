@@ -1,0 +1,293 @@
+{
+  "_note": "Edit the lists to match the models your tools offer. The names below are labels, not products. Map each label to a real model in whatever file your tool reads.",
+  "allowedModels": [
+    "strongest",
+    "capable-mid-tier",
+    "smallest"
+  ],
+  "allowedEfforts": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "allowedAccess": [
+    "read-only",
+    "docs-only",
+    "read-write"
+  ],
+  "roles": {
+    "accessibility-auditor": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "api-design-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "architect": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "builder": {
+      "model": "capable-mid-tier",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "code-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "competitive-analyst": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "compliance-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "copy-editor": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "customer-experience-guru": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "data-analyst": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "data-prospector": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "database-architect": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "dependency-auditor": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "design-auditor": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "design-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "designer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "docs-only"
+    },
+    "devops-specialist": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "e2e-test-writer": {
+      "model": "capable-mid-tier",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "eval-engineer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "finops-optimiser": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "fix-round-builder": {
+      "model": "capable-mid-tier",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "growth-strategist": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "implementer": {
+      "model": "capable-mid-tier",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "incident-responder": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "investor-lens": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "marketing-content": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "migration-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "onboarding-specialist": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "ops-health": {
+      "model": "strongest",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "pdf-designer": {
+      "model": "strongest",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "performance-optimiser": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "pricing-analyst": {
+      "model": "strongest",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "privacy-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "product-strategist": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "prompt-engineer": {
+      "model": "strongest",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "qa-tester": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "rag-engineer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-write"
+    },
+    "refactorer": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "release-manager": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "release-planner": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "retester": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "security-pen-tester": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "security-reviewer": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "seo-specialist": {
+      "model": "strongest",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "silent-failure-hunter": {
+      "model": "strongest",
+      "effort": "high",
+      "access": "read-only"
+    },
+    "technical-writer": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "triage-scout": {
+      "model": "smallest",
+      "effort": "medium",
+      "access": "read-only"
+    },
+    "visionary": {
+      "model": "capable-mid-tier",
+      "effort": "medium",
+      "access": "read-write"
+    },
+    "visual-designer": {
+      "model": "strongest",
+      "effort": "medium",
+      "access": "read-write"
+    }
+  },
+  "readOnlyRoles": [
+    "accessibility-auditor",
+    "api-design-reviewer",
+    "code-reviewer",
+    "competitive-analyst",
+    "compliance-reviewer",
+    "customer-experience-guru",
+    "data-analyst",
+    "data-prospector",
+    "database-architect",
+    "dependency-auditor",
+    "design-auditor",
+    "design-reviewer",
+    "finops-optimiser",
+    "growth-strategist",
+    "incident-responder",
+    "investor-lens",
+    "migration-reviewer",
+    "onboarding-specialist",
+    "privacy-reviewer",
+    "product-strategist",
+    "qa-tester",
+    "retester",
+    "security-pen-tester",
+    "security-reviewer",
+    "silent-failure-hunter",
+    "triage-scout"
+  ]
+}
